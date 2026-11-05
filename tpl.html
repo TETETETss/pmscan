@@ -1,0 +1,77 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pmscan — Polymarket wallet scanner</title><meta name="description" content="Find interesting Polymarket wallets: hot streaks, specialists, rockets, moonshots, bots, fresh whales.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23000%22/%3E%3Cg%20fill%3D%22%23fff%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%2227%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%2223%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2213%22%20cy%3D%2227%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2213%22%20cy%3D%2223%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2213%22%20cy%3D%2219%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2227%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2223%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2219%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2215%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2227%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2223%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2219%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2215%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2211%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%227%22%20r%3D%221.7%22/%3E%3C/g%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;color:#fff;font-family:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#fff;text-decoration:none}.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}.muted{color:#8a8a8a}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 32px;border-bottom:1px solid #222;position:sticky;top:0;background:#000;z-index:5}
+.brand{font-weight:500;font-size:19px;letter-spacing:-.3px;display:flex;gap:10px;align-items:center}.brand sup{font-size:9px;opacity:.6}
+.badge{font-size:10px;letter-spacing:1px;border:1px solid #333;border-radius:999px;padding:5px 10px;color:#8a8a8a;white-space:nowrap}.badge.old{color:#f5a524;border-color:#5a4210}
+main{max-width:1240px;margin:0 auto;padding:24px 32px 60px}
+h2{font-size:10px;letter-spacing:1.2px;color:#8a8a8a;font-weight:500;margin:26px 0 12px;font-family:ui-monospace,Menlo,monospace}
+.hero h1{font-size:34px;font-weight:400;letter-spacing:-1px}.hero p{color:#8a8a8a;font-size:13px;margin-top:6px;max-width:640px;line-height:1.5}
+.ctrl{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px;align-items:flex-end}.grp{display:flex;flex-direction:column;gap:6px}
+.lbl{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:1px;color:#8a8a8a;padding-left:4px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}.seg button{background:#000;color:#bbb;border:1px solid #333;border-radius:999px;padding:6px 12px;font:500 12px Inter,Helvetica,sans-serif;cursor:pointer}
+.seg button.on{background:#fff;color:#000;border-color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.card{border:1px solid #2a2a2a;border-radius:16px;padding:16px;background:#0a0a0a;display:flex;flex-direction:column;gap:12px}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.nm{font-weight:600;font-size:15px;word-break:break-all}.ad{font-size:11px;color:#8a8a8a;display:flex;gap:6px;align-items:center;margin-top:3px}
+.cp{background:none;border:1px solid #333;color:#aaa;border-radius:6px;font-size:10px;padding:2px 6px;cursor:pointer}
+.sc{text-align:right}.sc b{font-size:22px;font-weight:600}.sc div{font-size:9px;letter-spacing:1px;color:#8a8a8a}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font-size:10px;letter-spacing:.6px;border:1px solid #444;border-radius:999px;padding:3px 9px;font-family:ui-monospace,Menlo,monospace}
+.why{font-size:13px;line-height:1.45;color:#ddd}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;border-top:1px solid #1d1d1d;padding-top:10px}.stats div{font-size:9px;letter-spacing:.8px;color:#8a8a8a;font-family:ui-monospace,Menlo,monospace}.stats b{display:block;font:600 14px Inter,Helvetica,sans-serif;color:#fff;letter-spacing:0;margin-top:3px}
+.pos{color:#4ade80!important}.neg{color:#f87171!important}
+.best{border:1px solid #222;border-radius:10px;padding:9px 10px;display:flex;gap:10px;align-items:center;font-size:12px}.best img{width:30px;height:30px;border-radius:6px;object-fit:cover;flex:none}.best .t{color:#ddd;line-height:1.35}.best .m{font-size:10px;color:#8a8a8a;margin-top:3px}
+.links{display:flex;gap:8px}.links a{font-size:11px;border:1px solid #333;border-radius:999px;padding:5px 11px;color:#ddd}.links a:hover{border-color:#fff}
+svg.spk{width:100%;height:44px;display:block}
+.newrow{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}.newrow .card{min-width:300px;max-width:300px}
+.empty{color:#8a8a8a;font-size:13px;padding:20px 0}
+footer{color:#555;font-size:11px;text-align:center;padding:30px}
+@media(max-width:700px){header{padding:14px 16px}main{padding:16px}.grid{grid-template-columns:1fr}.hero h1{font-size:26px}.stats{grid-template-columns:repeat(2,1fr)}}
+</style></head><body>
+<header><div class="brand">pmscan<sup class="mono">WALLET SCANNER</sup></div><span class="badge mono" id="upd"></span></header>
+<main>
+<div class="hero"><h1>Interesting wallets on Polymarket</h1><p>Scans leaderboards and large trades every hour across __NC__ wallets, then flags hot streaks, niche specialists, fast risers, long-shot wins, bot-like grinders and fresh whales.</p></div>
+<h2>NEW THIS WEEK</h2><div class="newrow" id="new"></div>
+<div class="ctrl">
+<div class="grp"><span class="lbl">SIGNAL</span><div class="seg" id="ft"></div></div>
+<div class="grp"><span class="lbl">CATEGORY</span><div class="seg" id="fc"></div></div>
+<div class="grp"><span class="lbl">PERIOD</span><div class="seg" id="fp"></div></div>
+<div class="grp"><span class="lbl">SORT BY</span><div class="seg" id="fs"></div></div>
+</div>
+<h2 id="cnt"></h2><div class="grid" id="grid"></div>
+</main><footer class="mono">pmscan · data from Polymarket public API · not financial advice</footer>
+<script>
+const D=__DATA__;
+const TG={hot:["HOT STREAK","#f97316"],spec:["SPECIALIST","#38bdf8"],rocket:["ROCKET","#a78bfa"],moon:["MOONSHOT","#facc15"],bot:["BOT-LIKE","#4ade80"],fresh:["FRESH WHALE","#f472b6"]};
+const fm=x=>{const a=Math.abs(x),s=x<0?"-":"";return s+(a>=1e6?"$"+(a/1e6).toFixed(1)+"M":a>=1e3?"$"+(a/1e3).toFixed(0)+"K":"$"+a.toFixed(0))};
+const st={t:"all",c:"all",p:"all",s:"sc"};
+function seg(id,opts,key){const el=document.getElementById(id);el.innerHTML=opts.map(([v,l])=>`<button data-v="${v}" class="${st[key]==v?'on':''}">${l}</button>`).join("");el.onclick=e=>{const v=e.target.dataset.v;if(!v)return;st[key]=v;seg(id,opts,key);render()}}
+const cats=[...new Set(D.wallets.map(w=>w.cat))].filter(c=>c!="other").sort();
+seg("ft",[["all","All"],...Object.entries(TG).map(([k,v])=>[k,v[0][0]+v[0].slice(1).toLowerCase()])],"t");
+seg("fc",[["all","All"],...cats.map(c=>[c,c[0].toUpperCase()+c.slice(1)])],"c");
+seg("fp",[["all","All time"],["30","30d"],["7","7d"],["1","24h"]],"p");
+seg("fs",[["sc","Score"],["P","PnL"],["roi","ROI"],["pp","Period PnL"]],"s");
+function spark(a){if(a.length<2)return"";const mn=Math.min(...a),mx=Math.max(...a),r=mx-mn||1,W=300,H=44;const pts=a.map((v,i)=>`${(i/(a.length-1)*W).toFixed(1)},${(H-3-(v-mn)/r*(H-6)).toFixed(1)}`).join(" ");const up=a[a.length-1]>=a[0];return `<svg class="spk" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline fill="none" stroke="${up?'#4ade80':'#f87171'}" stroke-width="1.6" points="${pts}" vector-effect="non-scaling-stroke"/></svg>`}
+const pp=w=>st.p=="1"?w.p24:st.p=="7"?w.p7:st.p=="30"?w.p30:w.P;
+function card(w){const tags=Object.keys(w.tags).sort((a,b)=>w.tags[b]-w.tags[a]);const lead=st.t!="all"&&w.why[st.t]?st.t:tags[0];
+const b=(st.t=="moon"&&w.moon)?w.moon:(w.best||w.moon);const nm=w.n||w.w.slice(0,6)+"…"+w.w.slice(-4);const cl=v=>v>=0?"pos":"neg";
+return `<div class="card"><div class="top"><div><div class="nm">${nm}</div><div class="ad mono">${w.w.slice(0,8)}…${w.w.slice(-6)} <button class="cp" onclick="navigator.clipboard.writeText('${w.w}');this.textContent='copied'">copy</button></div></div><div class="sc"><b>${w.sc}</b><div>SCORE</div></div></div>
+<div class="chips">${tags.map(t=>`<span class="chip" style="color:${TG[t][1]};border-color:${TG[t][1]}55">${TG[t][0]}</span>`).join("")}<span class="chip muted">${w.cat.toUpperCase()}</span></div>
+<div class="why">${w.why[lead]}${tags.filter(t=>t!=lead).map(t=>'<span class="muted"> · '+w.why[t]+'</span>').join("")}</div>
+${spark(w.sp)}
+<div class="stats"><div>PNL ALL<b class="${cl(w.P)}">${fm(w.P)}</b></div><div>24H<b class="${cl(w.p24)}">${fm(w.p24)}</b></div><div>7D<b class="${cl(w.p7)}">${fm(w.p7)}</b></div><div>30D<b class="${cl(w.p30)}">${fm(w.p30)}</b></div>
+<div>ROI<b>${w.roi}%</b></div><div>WIN RATE<b>${w.wr}%</b></div><div>TRADES<b>${w.tc.toLocaleString()}</b></div><div>AGE<b>${w.age}d</b></div></div>
+${b?`<a class="best" href="https://polymarket.com/event/${b.s}?via=brams" target="_blank" rel="noopener">${b.ic?`<img src="${b.ic}" loading="lazy" alt="">`:""}<div><div class="t">${b.t} — ${b.o}</div><div class="m mono">BEST TRADE · ${(b.ep*100).toFixed(1)}¢ ENTRY · ${fm(b.cost)} → ${fm(b.cost+b.pnl)} · ${b.x}X</div></div></a>`:""}
+<div class="links"><a href="https://polymarket.com/profile/${w.w}?via=brams" target="_blank" rel="noopener">Polymarket profile ↗</a><a href="https://polygonscan.com/address/${w.w}" target="_blank" rel="noopener">Polygonscan ↗</a></div></div>`}
+function render(){let a=D.wallets.filter(w=>(st.t=="all"||w.tags[st.t]!=null)&&(st.c=="all"||w.cat==st.c));
+const k=st.s;a.sort((x,y)=>k=="pp"?pp(y)-pp(x):k=="sc"&&st.t!="all"?y.tags[st.t]-x.tags[st.t]:y[k]-x[k]);if(st.p!="all"&&k=="sc")a.sort((x,y)=>pp(y)-pp(x));
+document.getElementById("cnt").textContent=a.length+" FLAGGED WALLETS";document.getElementById("grid").innerHTML=a.map(card).join("")||'<div class="empty">No wallets match these filters.</div>'}
+const wk=D.updated-7*86400;const nw=D.wallets.filter(w=>w.ff>=wk).sort((a,b)=>b.sc-a.sc).slice(0,12);
+document.getElementById("new").innerHTML=nw.map(card).join("")||'<div class="empty">Nothing new yet.</div>';
+function upd(){const m=Math.round((Date.now()/1000-D.updated)/60),e=document.getElementById("upd");e.textContent="UPDATED "+(m<1?"JUST NOW":m<60?m+" MIN AGO":Math.round(m/60)+"H AGO");e.className="badge mono"+(m>120?" old":"")}
+upd();setInterval(upd,60000);render();
+</script></body></html>
