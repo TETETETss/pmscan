@@ -96,7 +96,7 @@ async function resolveWallet(input) {
 }
 
 async function fetchPositions(user, status, sort, dir, maxPages = 5) {
-  let out = [], cursor = null;
+  let out = [], cursor = null, truncated = false;
   for (let i = 0; i < maxPages; i++) {
     let url = DATA_API + "/positions?user=" + user + "&limit=100&status=" + status + "&sort_by=" + sort;
     if (dir) url += "&sort_direction=" + dir;
@@ -104,8 +104,10 @@ async function fetchPositions(user, status, sort, dir, maxPages = 5) {
     const j = await fetchJSON(url);
     out = out.concat(j.data || []);
     cursor = (j.pagination || {}).next_cursor;
-    if (!cursor || !(j.pagination || {}).has_more) break;
+    if (!cursor || !(j.pagination || {}).has_more) { truncated = false; break; }
+    if (i === maxPages - 1) truncated = true;
   }
+  out._truncated = truncated;
   return out;
 }
 
@@ -166,7 +168,7 @@ async function loadAll(addr) {
     fetchJSON(GAMMA + "/public-profile?address=" + addr).catch(() => ({})),
     fetchJSON(DATA_API + "/user-pnl?user=" + addr + "&interval=all&fidelity=1d"),
     fetchJSON(DATA_API + "/value?user=" + addr),
-    fetchPositions(addr, "OPEN", "CURRENT_VALUE", "DESC", 8),
+    fetchPositions(addr, "OPEN", "CURRENT_VALUE", "DESC", 12),
     fetchPositions(addr, "CLOSED", "TOTAL_PNL", "DESC", 1),
     fetchPositions(addr, "CLOSED", "TOTAL_PNL", "ASC", 1),
     fetchJSON(DATA_API + "/trades?user=" + addr + "&limit=40").catch(() => ({ data: [] })),
@@ -176,7 +178,7 @@ async function loadAll(addr) {
   S.profile = profile || {};
   S.points = ((pnl || {}).data || {}).points || [];
   S.value = ((value || {}).data || {}).value || 0;
-  S.open = open || [];
+  S.open = open || []; S.openTrunc = !!(open && open._truncated);
   S.closedWins = (wins || []).slice(0, 15);
   S.closedLoss = (losses || []).slice(0, 15);
   S.trades = (trades.data || []).slice(0, 40);
@@ -501,7 +503,7 @@ function render() {
         </div>
       </div>
       <div><span class="k">PORTFOLIO</span><span class="v">${fm(S.value)}</span></div>
-      <div><span class="k">POSITIONS</span><span class="v">${S.open.length}</span></div>
+      <div><span class="k">POSITIONS</span><span class="v">${S.open.length}${S.openTrunc?"+":""}</span></div>
       <div><span class="k">VOLUME</span><span class="v">${fm(S.vol)}</span></div>
     </div>
   </div>
@@ -556,14 +558,14 @@ function render() {
       <div><span class="k">PORTFOLIO VALUE</span><div class="v">${fm(S.value)}</div></div>
       <div><span class="k">TOTAL VOLUME</span><div class="v">${fm(S.vol)}</div></div>
       <div><span class="k">TRADES</span><div class="v">${(last.trade_count||0).toLocaleString()}</div></div>
-      <div><span class="k">OPEN POSITIONS</span><div class="v">${S.open.length}</div></div>
+      <div><span class="k">OPEN POSITIONS</span><div class="v">${S.open.length}${S.openTrunc?"+":""}</div></div>
     </div>
     <div class="muted" style="font-size:11px;margin-top:10px">USDC cash balance is not available from public Polymarket APIs, so it is omitted rather than estimated.</div>
   </div>
 
   <div class="tabs" id="tabs">
     <button data-t="overview" class="${S.tab==="overview"?"on":""}">Overview</button>
-    <button data-t="positions" class="${S.tab==="positions"?"on":""}">Positions (${S.open.length})</button>
+    <button data-t="positions" class="${S.tab==="positions"?"on":""}">Positions (${S.open.length}${S.openTrunc?"+":""})</button>
     <button data-t="activity" class="${S.tab==="activity"?"on":""}">Activity</button>
   </div>
   <div id="tabBody"></div>
