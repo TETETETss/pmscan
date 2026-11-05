@@ -65,8 +65,8 @@ return `<div class="card"><div class="top"><div><div class="nm">${nm}</div><div 
 ${spark(w.sp)}
 <div class="stats"><div>PNL ALL<b class="${cl(w.P)}">${fm(w.P)}</b></div><div>24H<b class="${cl(w.p24)}">${fm(w.p24)}</b></div><div>7D<b class="${cl(w.p7)}">${fm(w.p7)}</b></div><div>30D<b class="${cl(w.p30)}">${fm(w.p30)}</b></div>
 <div>ROI<b>${w.roi}%</b></div><div>WIN RATE<b>${w.wr}%</b></div><div>TRADES<b>${w.tc.toLocaleString()}</b></div><div>AGE<b>${w.age}d</b></div></div>
-${b?`<a class="best" href="https://polymarket.com/event/${b.s}?via=brams" target="_blank" rel="noopener">${b.ic?`<img src="${b.ic}" loading="lazy" alt="">`:""}<div><div class="t">${b.t} — ${b.o}</div><div class="m mono">BEST TRADE · ${(b.ep*100).toFixed(1)}¢ ENTRY · ${fm(b.cost)} → ${fm(b.cost+b.pnl)} · ${b.x}X</div></div></a>`:""}
-<div class="links"><a href="https://polymarket.com/profile/${w.w}?via=brams" target="_blank" rel="noopener">Polymarket profile ↗</a><a href="https://polygonscan.com/address/${w.w}" target="_blank" rel="noopener">Polygonscan ↗</a></div></div>`}
+${b?`<a class="best" href="https://polymarket.com/event/${b.s}" target="_blank" rel="noopener">${b.ic?`<img src="${b.ic}" loading="lazy" alt="">`:""}<div><div class="t">${b.t} — ${b.o}</div><div class="m mono">BEST TRADE · ${(b.ep*100).toFixed(1)}¢ ENTRY · ${fm(b.cost)} → ${fm(b.cost+b.pnl)} · ${b.x}X</div></div></a>`:""}
+<div class="links"><a href="https://polymarket.com/profile/${w.w}" target="_blank" rel="noopener">Polymarket profile ↗</a><a href="https://polygonscan.com/address/${w.w}" target="_blank" rel="noopener">Polygonscan ↗</a></div></div>`}
 function render(){let a=D.wallets.filter(w=>(st.t=="all"||w.tags[st.t]!=null)&&(st.c=="all"||w.cat==st.c));
 const k=st.s;a.sort((x,y)=>k=="pp"?pp(y)-pp(x):k=="sc"&&st.t!="all"?y.tags[st.t]-x.tags[st.t]:y[k]-x[k]);if(st.p!="all"&&k=="sc")a.sort((x,y)=>pp(y)-pp(x));
 document.getElementById("cnt").textContent=a.length+" FLAGGED WALLETS";document.getElementById("grid").innerHTML=a.map(card).join("")||'<div class="empty">No wallets match these filters.</div>'}
