@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wallet stats — pmscan</title>
+<meta name="description" content="Polymarket wallet PnL, calendar, positions and rankings.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23000%22/%3E%3Cg%20fill%3D%22%23fff%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%2227%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%2223%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2213%22%20cy%3D%2227%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2213%22%20cy%3D%2223%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2213%22%20cy%3D%2219%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2227%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2223%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2219%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2215%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2227%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2223%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2219%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2215%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2211%22%20r%3D%221.7%22/%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%227%22%20r%3D%221.7%22/%3E%3C/g%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;color:#fff;font-family:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#fff;text-decoration:none}.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}.muted{color:#8a8a8a}
+.pos{color:#4ade80!important}.neg{color:#f87171!important}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 28px;border-bottom:1px solid #222;position:sticky;top:0;background:#000;z-index:10;gap:12px}
+.brand{font-weight:500;font-size:17px;letter-spacing:-.3px;display:flex;gap:10px;align-items:center}
+.brand sup{font-size:9px;opacity:.6}.back{font-size:12px;color:#bbb;border:1px solid #333;border-radius:999px;padding:5px 12px;white-space:nowrap}
+.back:hover{border-color:#fff;color:#fff}
+main{max-width:1100px;margin:0 auto;padding:20px 28px 70px}
+.err{border:1px solid #5a2020;background:#1a0a0a;color:#f87171;padding:16px;border-radius:12px;margin:20px 0}
+.loading{color:#8a8a8a;padding:48px 0;text-align:center;font-size:14px}
+.hd{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+.who{display:flex;gap:12px;align-items:center;min-width:0}
+.av{width:48px;height:48px;border-radius:50%;object-fit:cover;background:#1a1a1a;border:1px solid #333;flex:none}
+.nm{font-size:20px;font-weight:600;letter-spacing:-.3px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.nm a.ic{font-size:12px;opacity:.75;border:1px solid #333;border-radius:8px;padding:3px 7px}
+.addr{font-size:11px;color:#8a8a8a;margin-top:3px;word-break:break-all}
+.topstats{display:flex;flex-wrap:wrap;gap:14px 22px;font-size:12px}
+.topstats .k{color:#8a8a8a;font-size:10px;letter-spacing:.8px;font-family:ui-monospace,Menlo,monospace;display:block;margin-bottom:2px}
+.topstats .v{font-weight:600;font-size:15px}
+.topstats .sub{font-size:11px;color:#8a8a8a;margin-top:3px;display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1px solid #2a2a2a;border-radius:16px;padding:16px;background:#0a0a0a;margin-bottom:14px}
+.card h3{font-size:11px;letter-spacing:1px;color:#8a8a8a;font-weight:500;font-family:ui-monospace,Menlo,monospace;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button,.btn{background:#000;color:#bbb;border:1px solid #333;border-radius:999px;padding:5px 11px;font:500 12px Inter,Helvetica,sans-serif;cursor:pointer}
+.seg button.on{background:#fff;color:#000;border-color:#fff}
+.chart-wrap{position:relative;width:100%;height:280px}
+.chart-wrap canvas{width:100%;height:100%;display:block;cursor:crosshair}
+.tip{position:absolute;pointer-events:none;background:#111;border:1px solid #333;border-radius:8px;padding:6px 8px;font-size:11px;display:none;z-index:2;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:11px;color:#aaa}
+.legend label{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
+.legend input{accent-color:#4ade80}
+.pboxes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.pbox{border:1px solid #2a2a2a;border-radius:14px;padding:14px;background:#0a0a0a}
+.pbox .l{font-size:10px;letter-spacing:1px;color:#8a8a8a;font-family:ui-monospace,Menlo,monospace}
+.pbox .a{font-size:22px;font-weight:600;margin-top:4px}
+.pbox .p{font-size:12px;margin-top:2px;opacity:.85}
+.cal-hd{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}
+.cal-hd .title{font-size:16px;font-weight:600}
+.cal-nav{display:flex;gap:6px;align-items:center}
+.cal-nav button{background:#111;border:1px solid #333;color:#fff;border-radius:8px;width:28px;height:28px;cursor:pointer}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-grid .dow{font-size:10px;color:#666;text-align:center;padding:4px 0;font-family:ui-monospace,Menlo,monospace}
+.cal-grid .day{min-height:54px;border-radius:8px;padding:4px 5px;font-size:10px;background:#111;border:1px solid #1a1a1a;display:flex;flex-direction:column;justify-content:space-between}
+.cal-grid .day.empty{background:transparent;border-color:transparent}
+.cal-grid .day .d{color:#888}.cal-grid .day .v{font-weight:600;font-size:11px}
+.cal-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:#aaa}
+.overall{text-align:center;padding:22px 16px}
+.overall .big{font-size:42px;font-weight:600;letter-spacing:-1px}
+.breakdown{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 18px;margin:14px 0;font-size:12px;color:#bbb}
+.breakdown span b{color:#fff;font-weight:600}
+.ov-bottom{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid #222;font-size:12px}
+.ov-bottom .k{color:#8a8a8a;font-size:10px;letter-spacing:.8px;display:block;font-family:ui-monospace,Menlo,monospace}
+.ov-bottom .v{font-weight:600;font-size:15px;margin-top:2px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #222;margin:8px 0 14px;overflow:auto}
+.tabs button{background:none;border:none;color:#888;padding:10px 14px;font:500 13px Inter,Helvetica,sans-serif;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button.on{color:#fff;border-bottom-color:#fff}
+.cols{display:grid;grid-template-columns:1fr 1fr minmax(220px,280px);gap:12px}
+.list{display:flex;flex-direction:column;gap:8px;max-height:440px;overflow:auto}
+.item{display:flex;gap:10px;align-items:center;padding:8px;border:1px solid #1d1d1d;border-radius:10px;font-size:12px}
+.item img{width:32px;height:32px;border-radius:6px;object-fit:cover;flex:none;background:#1a1a1a}
+.item .t{line-height:1.35;flex:1;min-width:0}
+.item .t .m{color:#8a8a8a;font-size:10px;margin-top:2px}
+.item .r{text-align:right;flex:none}
+.side{font-size:10px;border:1px solid #333;border-radius:4px;padding:1px 5px;margin-right:4px}
+.side.yes{color:#4ade80;border-color:#4ade8055}.side.no{color:#f87171;border-color:#f8717155}
+.tag{font-size:10px;font-weight:600;letter-spacing:.5px;padding:2px 6px;border-radius:4px;margin-right:4px}
+.tag.buy{background:#14301f;color:#4ade80}.tag.sell{background:#301414;color:#f87171}
+.ranks{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:end}
+.rank-overall{text-align:center;padding:10px}
+.rank-overall .rk{font-size:28px;font-weight:600}
+.rank-bars{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;align-items:end;min-height:150px}
+.rbar{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:#aaa;height:100%;justify-content:flex-end}
+.rbar .bar{width:100%;max-width:36px;border-radius:6px 6px 0 0;min-height:4px}
+.rbar .pnl{font-weight:600;font-size:11px;color:#fff;white-space:nowrap}
+.rbar .cat{text-align:center;line-height:1.2;margin-top:2px;text-transform:capitalize}
+@media(max-width:900px){
+  .cols{grid-template-columns:1fr}.ranks{grid-template-columns:1fr}
+  .pboxes{grid-template-columns:repeat(2,1fr)}
+  .rank-bars{grid-template-columns:1fr;min-height:auto}
+  .rbar{flex-direction:row;justify-content:flex-start;gap:10px;border:1px solid #1d1d1d;border-radius:8px;padding:8px 10px}
+  .rbar .bar{width:48px;height:8px!important;max-width:none;border-radius:4px;min-height:8px}
+  .rbar .cat{margin-top:0;min-width:72px;text-align:left}
+}
+@media(max-width:600px){
+  header,main{padding-left:14px;padding-right:14px}
+  .overall .big{font-size:32px}.chart-wrap{height:220px}
+  .topstats .v{font-size:14px}.nm{font-size:17px}
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/">pmscan<sup class="mono">WALLET</sup></a>
+  <a class="back" href="/">&larr; Scanner</a>
+</header>
+<main id="app"><div class="loading" id="status">Loading wallet&hellip;</div></main>
+<script src="/wallet.js"></script>
+</body>
+</html>

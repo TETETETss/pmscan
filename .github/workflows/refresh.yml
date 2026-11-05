@@ -41,7 +41,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/wallets.json data/history.json pub/index.html
+          git add data/wallets.json data/history.json pub/index.html pub/wallet.html pub/wallet.js pub/_redirects pub/_routes.json functions || true
           git diff --cached --quiet && exit 0
           git commit -m "scan $(date -u '+%F %H:%M UTC')"
           for i in 1 2 3; do git pull --rebase -X theirs origin main && git push origin HEAD:main && break; sleep 5; done

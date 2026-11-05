@@ -31,10 +31,19 @@ svg.spk{width:100%;height:44px;display:block}
 .empty{color:#8a8a8a;font-size:13px;padding:20px 0}
 footer{color:#555;font-size:11px;text-align:center;padding:30px}
 @media(max-width:700px){header{padding:14px 16px}main{padding:16px}.grid{grid-template-columns:1fr}.hero h1{font-size:26px}.stats{grid-template-columns:repeat(2,1fr)}}
+
+.search{display:flex;gap:8px;margin-top:16px;max-width:560px}
+.search input{flex:1;background:#0a0a0a;border:1px solid #333;border-radius:999px;padding:10px 16px;color:#fff;font:14px Inter,Helvetica,sans-serif;outline:none}
+.search input:focus{border-color:#666}
+.search button{background:#fff;color:#000;border:none;border-radius:999px;padding:10px 18px;font:600 13px Inter,Helvetica,sans-serif;cursor:pointer;white-space:nowrap}
+.search button:hover{opacity:.9}
+.card{transition:border-color .15s}.card:hover{border-color:#555}
+.card .nm a{color:inherit}.card .nm a:hover{text-decoration:underline}
 </style></head><body>
 <header><div class="brand">pmscan<sup class="mono">WALLET SCANNER</sup></div><span class="badge mono" id="upd"></span></header>
 <main>
 <div class="hero"><h1>Interesting wallets on Polymarket</h1><p>Scans leaderboards and large trades every hour across __NC__ wallets, then flags hot streaks, niche specialists, fast risers, long-shot wins, bot-like grinders and fresh whales.</p></div>
+<div class="search"><input id="q" type="text" placeholder="Search any wallet address or Polymarket username…" autocomplete="off"><button id="go" type="button">Open stats</button></div>
 <h2>NEW THIS WEEK</h2><div class="newrow" id="new"></div>
 <div class="ctrl">
 <div class="grp"><span class="lbl">SIGNAL</span><div class="seg" id="ft"></div></div>
@@ -59,19 +68,23 @@ function spark(a){if(a.length<2)return"";const mn=Math.min(...a),mx=Math.max(...
 const pp=w=>st.p=="1"?w.p24:st.p=="7"?w.p7:st.p=="30"?w.p30:w.P;
 function card(w){const tags=Object.keys(w.tags).sort((a,b)=>w.tags[b]-w.tags[a]);const lead=st.t!="all"&&w.why[st.t]?st.t:tags[0];
 const b=(st.t=="moon"&&w.moon)?w.moon:(w.best||w.moon);const nm=w.n||w.w.slice(0,6)+"…"+w.w.slice(-4);const cl=v=>v>=0?"pos":"neg";
-return `<div class="card"><div class="top"><div><div class="nm">${nm}</div><div class="ad mono">${w.w.slice(0,8)}…${w.w.slice(-6)} <button class="cp" onclick="navigator.clipboard.writeText('${w.w}');this.textContent='copied'">copy</button></div></div><div class="sc"><b>${w.sc}</b><div>SCORE</div></div></div>
+return `<div class="card" onclick="if(!event.target.closest('a,button'))location.href='/wallet?w=${w.w}'"><div class="top"><div><div class="nm"><a href="/wallet?w=${w.w}">${nm}</a></div><div class="ad mono">${w.w.slice(0,8)}…${w.w.slice(-6)} <button class="cp" onclick="navigator.clipboard.writeText('${w.w}');this.textContent='copied'">copy</button></div></div><div class="sc"><b>${w.sc}</b><div>SCORE</div></div></div>
 <div class="chips">${tags.map(t=>`<span class="chip" style="color:${TG[t][1]};border-color:${TG[t][1]}55">${TG[t][0]}</span>`).join("")}<span class="chip muted">${w.cat.toUpperCase()}</span></div>
 <div class="why">${w.why[lead]}${tags.filter(t=>t!=lead).map(t=>'<span class="muted"> · '+w.why[t]+'</span>').join("")}</div>
 ${spark(w.sp)}
 <div class="stats"><div>PNL ALL<b class="${cl(w.P)}">${fm(w.P)}</b></div><div>24H<b class="${cl(w.p24)}">${fm(w.p24)}</b></div><div>7D<b class="${cl(w.p7)}">${fm(w.p7)}</b></div><div>30D<b class="${cl(w.p30)}">${fm(w.p30)}</b></div>
 <div>ROI<b>${w.roi}%</b></div><div>WIN RATE<b>${w.wr}%</b></div><div>TRADES<b>${w.tc.toLocaleString()}</b></div><div>AGE<b>${w.age}d</b></div></div>
 ${b?`<a class="best" href="https://polymarket.com/event/${b.s}" target="_blank" rel="noopener">${b.ic?`<img src="${b.ic}" loading="lazy" alt="">`:""}<div><div class="t">${b.t} — ${b.o}</div><div class="m mono">BEST TRADE · ${(b.ep*100).toFixed(1)}¢ ENTRY · ${fm(b.cost)} → ${fm(b.cost+b.pnl)} · ${b.x}X</div></div></a>`:""}
-<div class="links"><a href="https://polymarket.com/profile/${w.w}" target="_blank" rel="noopener">Polymarket profile ↗</a><a href="https://polygonscan.com/address/${w.w}" target="_blank" rel="noopener">Polygonscan ↗</a></div></div>`}
+<div class="links"><a href="/wallet?w=${w.w}">Wallet stats →</a><a href="https://polymarket.com/profile/${w.w}" target="_blank" rel="noopener">Polymarket ↗</a><a href="https://polygonscan.com/address/${w.w}" target="_blank" rel="noopener">Polygonscan ↗</a></div></div>`}
 function render(){let a=D.wallets.filter(w=>(st.t=="all"||w.tags[st.t]!=null)&&(st.c=="all"||w.cat==st.c));
 const k=st.s;a.sort((x,y)=>k=="pp"?pp(y)-pp(x):k=="sc"&&st.t!="all"?y.tags[st.t]-x.tags[st.t]:y[k]-x[k]);if(st.p!="all"&&k=="sc")a.sort((x,y)=>pp(y)-pp(x));
 document.getElementById("cnt").textContent=a.length+" FLAGGED WALLETS";document.getElementById("grid").innerHTML=a.map(card).join("")||'<div class="empty">No wallets match these filters.</div>'}
 const wk=D.updated-7*86400;const nw=D.wallets.filter(w=>w.ff>=wk).sort((a,b)=>b.sc-a.sc).slice(0,12);
 document.getElementById("new").innerHTML=nw.map(card).join("")||'<div class="empty">Nothing new yet.</div>';
 function upd(){const m=Math.round((Date.now()/1000-D.updated)/60),e=document.getElementById("upd");e.textContent="UPDATED "+(m<1?"JUST NOW":m<60?m+" MIN AGO":Math.round(m/60)+"H AGO");e.className="badge mono"+(m>120?" old":"")}
+
+function openStats(){const v=document.getElementById("q").value.trim();if(!v)return;let s=v.replace(/^https?:\/\/(www\.)?polymarket\.com\/(profile|@)\//i,"").replace(/^@/,"").split(/[?#]/)[0].trim();location.href="/wallet?w="+encodeURIComponent(s)}
+document.getElementById("go").onclick=openStats;
+document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")openStats()});
 upd();setInterval(upd,60000);render();
 </script></body></html>
